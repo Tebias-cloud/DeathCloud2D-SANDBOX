@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 16f;
 
     [Header("Mecánicas de Pared (Wall Slide)")]
-    public float wallSlidingSpeed = 1.5f; // Cuanto más bajo, más lento cae
+    public float wallSlidingSpeed = 1.5f;
     public Vector2 wallJumpPower = new Vector2(12f, 18f);
     public float wallJumpDuration = 0.2f;
 
@@ -15,6 +15,11 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer;
     public Transform wallCheck; 
     public float wallCheckRadius = 0.35f;
+    
+    // --- NUEVO: SENSOR DE SUELO INDEPENDIENTE ---
+    [Header("Sensor de Suelo (Para Rampas)")]
+    public Transform groundCheck; // Arrastra aquí tu objeto vacío "Pie_Sensor"
+    public float groundCheckRadius = 0.3f; 
 
     private Rigidbody2D rb;
     private Collider2D coll;
@@ -31,7 +36,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<Collider2D>();
         
-        // TRUCO PRO: Quitamos la fricción por código para que no se "trabe"
+        // Aplicamos fricción cero para no trabarnos
         if (coll.sharedMaterial == null) {
             PhysicsMaterial2D mat = new PhysicsMaterial2D("SlideMaterial");
             mat.friction = 0f;
@@ -45,7 +50,7 @@ public class PlayerController : MonoBehaviour
 
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
-        // Lógica de Salto Normal
+        // Lógica de Salto usando el NUEVO sensor
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -63,18 +68,14 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         if (isWallJumping) return;
-
-        // Movimiento horizontal fluido
         rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y);
     }
 
     private void HandleWallSlide()
     {
-        // Si tocamos pared, no estamos en el suelo y nos movemos hacia la pared
         if (IsWalled() && !IsGrounded() && horizontalInput != 0)
         {
             isWallSliding = true;
-            // Forzamos la velocidad de caída lenta
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlidingSpeed, float.MaxValue));
         }
         else
@@ -88,8 +89,8 @@ public class PlayerController : MonoBehaviour
         if (isWallSliding)
         {
             isWallJumping = false;
-            wallJumpDirection = -transform.localScale.x; // Salta hacia el lado opuesto a donde mira
-            wallJumpTimer = 0.15f; // Tiempo de gracia
+            wallJumpDirection = -transform.localScale.x;
+            wallJumpTimer = 0.15f;
             CancelInvoke(nameof(StopWallJump));
         }
         else
@@ -103,7 +104,6 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);
             wallJumpTimer = 0f;
 
-            // Girar al personaje al saltar de la pared
             if (transform.localScale.x != wallJumpDirection)
             {
                 isFacingRight = !isFacingRight;
@@ -118,7 +118,11 @@ public class PlayerController : MonoBehaviour
 
     private void StopWallJump() => isWallJumping = false;
 
-    private bool IsGrounded() => Physics2D.BoxCast(coll.bounds.center, coll.bounds.size, 0f, Vector2.down, 0.1f, groundLayer);
+    // --- CAMBIO CLAVE: Ahora detecta el suelo desde el objeto vacío ---
+    private bool IsGrounded() 
+    {
+        return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+    }
 
     private bool IsWalled()
     {
@@ -138,10 +142,18 @@ public class PlayerController : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        // Dibujamos el sensor de pared en ROJO
         if (wallCheck != null)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(wallCheck.position, wallCheckRadius);
+        }
+
+        // Dibujamos el sensor de suelo en AMARILLO
+        if (groundCheck != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
     }
 }
