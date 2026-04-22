@@ -1,23 +1,34 @@
-# 🌩️ DeathCloud (Skybound Drifters) - Sandbox v0.1
+# DeathCloud 2D - Professional Sandbox
 
-Este repositorio contiene el entorno de pruebas técnico para el proyecto **DeathCloud**. El objetivo de este branch es validar las mecánicas de desplazamiento y físicas de alta velocidad antes de la integración con el mundo principal.
+A high-performance 2D platformer framework built with Unity 6, utilizing modern architectural patterns for scalable game development.
 
-## 🕹️ Mecánicas Implementadas
-- **Character Controller 2D:** Movimiento basado en físicas con fricción cero para evitar atascos en pendientes.
-- **Sistema de Salto Dinámico:** Salto base con preservación de inercia.
-- **Wall Mechanics:** Wall Slide y Wall Jump funcional en superficies verticales.
-- **Látigo de Elitio (Grappling Hook):** - Sistema de balanceo mediante `DistanceJoint2D`.
-  - Mecánica de tensión: La cuerda parpadea y se rompe tras 5-12 segundos de estrés máximo.
-  - Salto "Spider-Man": Impulso vertical y horizontal extra si se salta en el momento de máxima velocidad.
+## 🏗 Architecture Overview
 
-## 🛠️ Detalles Técnicos
-- **Tilemaps Múltiples:** Separación física entre capas de suelo (`Ground`) y puntos de anclaje (`Grapple`).
-- **Renderizado:** Uso de `LineRenderer` para la visualización del gancho con efectos de color dinámicos.
-- **PPU (Pixels Per Unit):** Configurado a 16 para los assets de la isla y 32 para el Caballero, manteniendo la escala 1:1 en el mundo.
+This project follows a **Decoupled Modular Architecture** to ensure clean separation of concerns:
 
-## 👥 Colaboradores
-- **Backend & Physics:** [Tebias-cloud](https://github.com/Tebias-cloud) (Esteban)
-- **Equipo:** Diego, Seba
+- **State Machine Pattern**: The player movement and mechanics are managed via a robust, interface-driven state machine. This allows for complex behaviors (Grappling, Dashing, Airborne states) to be easily extended without spaghetti code.
+- **Input System (Modern)**: Fully integrated with the new Unity Input System, using an `InputReader` ScriptableObject as a bridge to decouple input logic from actor behavior.
+- **ScriptableObject-Driven Data**: Player statistics, tuning, and configurations are stored in ScriptableObjects, enabling real-time balancing and clear data/logic separation.
 
----
-*Gráficos creados por Penzilla Design (Licencia Estándar)*
+## 📂 Project Structure
+
+Following industry standards, the project is organized under a root `_Project` directory to isolate game assets from external packages:
+
+- `_Project/Scripts/Core`: fundamental systems (Input, Audio, Global Managers).
+- `_Project/Scripts/Features`: self-contained gameplay modules (Player, Enemies, World).
+- `_Project/Settings/`: configurations for Input, Rendering (URP), and Physiscs.
+- `_Project/Legacy/`: archived components for reference during migration.
+
+## 🚀 Getting Started
+
+1. **Unity Version**: Ensure you are using Unity 6 (6000.x) or newer.
+2. **Setup**: The project uses URP. If materials appear pink, go to `Window > Rendering > Render Pipeline Converter`.
+3. **Input**: Input settings are located in `_Project/Settings/Input`. Controls are mapped for Keyboard (WASD/Space/E) and Gamepads.
+
+## 🛠 Features
+
+- [x] Advanced 2D State Machine
+- [x] Grappling Hook with tension physics
+- [x] Coyote Time & Jump Buffer
+- [x] Dash mechanics with gravity control
+- [x] Professional project organization
