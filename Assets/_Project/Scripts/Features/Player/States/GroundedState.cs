@@ -18,8 +18,11 @@ namespace DeathCloud.Player.States
             input.DashEvent += OnDash;
             input.AttackEvent += OnAttackPressed;
 
-            // Jump Buffer logic: si ya veníamos con ganas de saltar, saltamos ahora
-            if (stateMachine.HasJumpBuffer)
+            _horizontalInput = input.MoveValue.x;
+
+            // Minecraft-style Jump y Jump Buffer: 
+            // Si el jugador mantiene el salto o presionó justo antes de caer, saltamos al instante.
+            if (input.IsJumpHeld || stateMachine.HasJumpBuffer)
             {
                 stateMachine.ConsumeJumpBuffer();
                 OnJump();
@@ -71,10 +74,18 @@ namespace DeathCloud.Player.States
 
         public override void Update()
         {
-            // Verificación de caída
-            if (!IsGrounded())
+            // Verificación de caída usando el sistema centralizado
+            if (!stateMachine.IsGrounded())
             {
                 stateMachine.ChangeState(new AirborneState(stateMachine));
+                return;
+            }
+
+            // Minecraft-style Jump: Salto continuo si se mantiene presionada la tecla
+            if (input.IsJumpHeld)
+            {
+                OnJump();
+                return;
             }
 
             HandleFlip();
@@ -83,12 +94,6 @@ namespace DeathCloud.Player.States
         public override void FixedUpdate()
         {
             stateMachine.RB.linearVelocity = new Vector2(_horizontalInput * stats.moveSpeed, stateMachine.RB.linearVelocity.y);
-        }
-
-        private bool IsGrounded()
-        {
-            // Implementación simplificada del sensor que ya tenía el usuario
-            return Physics2D.OverlapCircle(stateMachine.transform.position, stats.groundCheckRadius, stats.groundLayer);
         }
 
         private void HandleFlip()

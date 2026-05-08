@@ -11,11 +11,22 @@ namespace DeathCloud.Core.Network
     {
         private void Start()
         {
-            // Verificamos si ya hay un NetworkManager y si NO está ya corriendo
-            if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+            if (NetworkManager.Singleton == null)
             {
-                Debug.Log("[AutoHost] Iniciando Host automáticamente para el Sandbox...");
-                NetworkManager.Singleton.StartHost();
+                Debug.LogError("[AutoHost] ERROR: No se encontró un NetworkManager en la escena.");
+                return;
+            }
+
+            if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+            {
+                Debug.Log("[AutoHost] Intentando iniciar Host...");
+                bool success = NetworkManager.Singleton.StartHost();
+                if (success) Debug.Log("[AutoHost] Host iniciado con ÉXITO.");
+                else Debug.LogError("[AutoHost] FALLÓ el inicio del Host. Revisa errores de transporte en la consola.");
+            }
+            else
+            {
+                Debug.Log("[AutoHost] El NetworkManager ya está corriendo (Host/Cliente/Servidor).");
             }
         }
     }

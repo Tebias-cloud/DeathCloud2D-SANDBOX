@@ -13,7 +13,8 @@ namespace DeathCloud.Player.States
         public AirborneState(PlayerStateMachine stateMachine, bool isJumping = false) : base(stateMachine)
         {
             _hasJumped = isJumping;
-            _coyoteTimer = isJumping ? 0 : stats.coyoteTime;
+            // Coyote Time: 0.2 segundos de gracia (más generoso)
+            _coyoteTimer = isJumping ? 0 : 0.2f; 
         }
 
         public override void Enter()
@@ -22,6 +23,9 @@ namespace DeathCloud.Player.States
             input.GrappleEvent += OnTryGrapple;
             input.JumpEvent += OnJumpInput;
             input.DashEvent += OnDashInput;
+            input.AttackEvent += OnAttackPressed;
+
+            _horizontalInput = input.MoveValue.x;
         }
 
         public override void Exit()
@@ -30,6 +34,12 @@ namespace DeathCloud.Player.States
             input.GrappleEvent -= OnTryGrapple;
             input.JumpEvent -= OnJumpInput;
             input.DashEvent -= OnDashInput;
+            input.AttackEvent -= OnAttackPressed;
+        }
+
+        private void OnAttackPressed()
+        {
+            stateMachine.ChangeState(new AttackState(stateMachine));
         }
 
         private void OnMove(Vector2 move)
@@ -75,13 +85,13 @@ namespace DeathCloud.Player.States
         {
             if (_coyoteTimer > 0) _coyoteTimer -= Time.deltaTime;
 
-            if (IsGrounded() && stateMachine.RB.linearVelocity.y <= 0.1f)
+            if (stateMachine.IsGrounded() && stateMachine.RB.linearVelocity.y <= 0.1f)
             {
                 stateMachine.ChangeState(new GroundedState(stateMachine));
                 return;
             }
 
-            if (IsWalled() && _horizontalInput != 0)
+            if (stateMachine.IsWalled(_horizontalInput) && _horizontalInput != 0)
             {
                 stateMachine.ChangeState(new WallState(stateMachine));
             }
@@ -89,21 +99,10 @@ namespace DeathCloud.Player.States
             HandleFlip();
         }
 
-        private bool IsWalled()
-        {
-            Vector2 checkPos = stateMachine.transform.position + new Vector3(stateMachine.transform.localScale.x * 0.5f, 0, 0);
-            return Physics2D.OverlapCircle(checkPos, stats.wallCheckRadius, stats.groundLayer);
-        }
-
         public override void FixedUpdate()
         {
-            // Movimiento lateral en aire (aquí podrías aplicar una inercia diferente si quisieras)
+            // Movimiento lateral en aire
             stateMachine.RB.linearVelocity = new Vector2(_horizontalInput * stats.moveSpeed, stateMachine.RB.linearVelocity.y);
-        }
-
-        private bool IsGrounded()
-        {
-            return Physics2D.OverlapCircle(stateMachine.transform.position, stats.groundCheckRadius, stats.groundLayer);
         }
 
         private void HandleFlip()

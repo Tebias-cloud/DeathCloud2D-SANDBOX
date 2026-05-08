@@ -35,7 +35,7 @@ namespace DeathCloud.Player.States
         {
             if (timePassed >= attackDuration)
             {
-                if (IsGrounded())
+                if (stateMachine.IsGrounded())
                 {
                     stateMachine.ChangeState(new GroundedState(stateMachine));
                 }
@@ -44,11 +44,6 @@ namespace DeathCloud.Player.States
                     stateMachine.ChangeState(new AirborneState(stateMachine));
                 }
             }
-        }
-
-        private bool IsGrounded()
-        {
-            return Physics2D.OverlapCircle(stateMachine.transform.position, stats.groundCheckRadius, stats.groundLayer);
         }
     }
 }

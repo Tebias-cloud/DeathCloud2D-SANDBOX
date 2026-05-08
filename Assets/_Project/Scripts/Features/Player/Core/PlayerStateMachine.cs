@@ -52,10 +52,26 @@ namespace DeathCloud.Player.Core
 
         private void Awake()
         {
-            RB = GetComponent<Rigidbody2D>();
-            Collider = GetComponent<Collider2D>();
-            Joint = GetComponent<DistanceJoint2D>();
-            Line = GetComponent<LineRenderer>();
+            RB = GetComponentInChildren<Rigidbody2D>();
+            
+            // Buscar el collider físico real (ignorando hitboxes que suelen ser triggers)
+            Collider2D[] allColliders = GetComponentsInChildren<Collider2D>();
+            foreach(var col in allColliders)
+            {
+                if (!col.isTrigger)
+                {
+                    Collider = col;
+                    break;
+                }
+            }
+
+            Joint = GetComponentInChildren<DistanceJoint2D>();
+            Line = GetComponentInChildren<LineRenderer>();
+
+            if (_stats == null) Debug.LogError($"[PlayerStateMachine] ERROR: StatsSO no está asignado en {gameObject.name}.");
+            if (_input == null) Debug.LogError($"[PlayerStateMachine] ERROR: InputReader no está asignado en {gameObject.name}.");
+            if (Collider == null) Debug.LogError($"[PlayerStateMachine] ERROR: No se encontró Collider2D físico en {gameObject.name}.");
+            if (RB == null) Debug.LogError($"[PlayerStateMachine] ERROR: No se encontró Rigidbody2D en {gameObject.name}.");
         }
 
         public override void OnNetworkSpawn()
@@ -64,21 +80,25 @@ namespace DeathCloud.Player.Core
             
             if (IsOwner)
             {
+                Debug.Log($"[PlayerStateMachine] Local Player Spawned: {gameObject.name} (NetId: {NetworkObjectId})");
                 var virtualCamera = Object.FindAnyObjectByType<CinemachineCamera>();
                 if (virtualCamera != null)
                 {
-                    // Si asignaste un CameraTarget en el inspector, lo usa. Si no, usa el centro del jugador.
                     virtualCamera.Follow = _cameraTarget != null ? _cameraTarget : transform;
-                }
-                else
-                {
-                    UnityEngine.Debug.LogWarning("No se encontró una CinemachineCamera en la escena.");
                 }
             }
         }
 
         private void Start()
         {
+            if (!IsOwner) return;
+            
+            if (_stats == null || _input == null)
+            {
+                Debug.LogError($"[PlayerStateMachine] Abortando inicialización de estados en {gameObject.name} por falta de referencias.");
+                return;
+            }
+
             ChangeState(new GroundedState(this));
         }
 
@@ -104,9 +124,32 @@ namespace DeathCloud.Player.Core
             _currentState?.Exit();
             _currentState = newState;
             _currentState?.Enter();
+        }
+
+        // ==========================================
+        // DETECCIÓN FÍSICA CENTRALIZADA (FASE 3)
+        // ==========================================
+        
+        public bool IsGrounded()
+        {
+            if (Collider == null) return false;
             
-            // Debug para saber en qué estado estamos
-            // Debug.Log($"Cambio de estado a: {newState.GetType().Name}");
+            // Caja en los pies: 1.2x el ancho del collider para máxima estabilidad en bordes
+            Vector2 boxSize = new Vector2(Collider.bounds.size.x * 1.2f, 0.3f); 
+            Vector2 boxCenter = new Vector2(Collider.bounds.center.x, Collider.bounds.min.y + 0.05f);
+            
+            return Physics2D.OverlapBox(boxCenter, boxSize, 0f, Stats.groundLayer);
+        }
+
+        public bool IsWalled(float directionX)
+        {
+            if (Collider == null) return false;
+            
+            // Caja lateral: detecta contacto con paredes en la dirección del movimiento
+            Vector2 boxSize = new Vector2(0.3f, Collider.bounds.size.y * 0.8f);
+            Vector2 boxCenter = new Vector2(Collider.bounds.center.x + (Collider.bounds.extents.x * directionX), Collider.bounds.center.y);
+            
+            return Physics2D.OverlapBox(boxCenter, boxSize, 0f, Stats.groundLayer);
         }
     }
 }

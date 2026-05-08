@@ -122,14 +122,19 @@ namespace DeathCloud.Player.States
             Vector2 vel = stateMachine.RB.linearVelocity;
             bool isPerfect = vel.magnitude > (stats.maxSpeedLimit * 0.6f);
             
+            Vector2 finalVel;
             if (isPerfect)
             {
-                stateMachine.RB.linearVelocity = new Vector2(vel.x * stats.perfectTimingMultiplier, stats.verticalPopForce * stats.perfectTimingMultiplier);
+                finalVel = new Vector2(vel.x * stats.perfectTimingMultiplier, stats.verticalPopForce * stats.perfectTimingMultiplier);
             }
             else
             {
-                stateMachine.RB.linearVelocity = new Vector2(vel.x, Mathf.Max(0, vel.y) + stats.normalJumpPop);
+                finalVel = new Vector2(vel.x, Mathf.Max(0, vel.y) + stats.normalJumpPop);
             }
+
+            // Clamp final velocity to avoid "explosive" launches
+            float maxLaunchSpeed = stats.maxSpeedLimit * 2f; 
+            stateMachine.RB.linearVelocity = Vector2.ClampMagnitude(finalVel, maxLaunchSpeed);
         }
     }
 }

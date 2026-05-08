@@ -15,6 +15,8 @@ namespace DeathCloud.Player.States
             input.JumpEvent += OnWallJump;
             input.MoveEvent += OnMove;
             input.DashEvent += OnDash;
+
+            _horizontalInput = input.MoveValue.x;
         }
 
         public override void Exit()
@@ -43,13 +45,14 @@ namespace DeathCloud.Player.States
 
         public override void Update()
         {
-            if (IsGrounded())
+            if (stateMachine.IsGrounded())
             {
                 stateMachine.ChangeState(new GroundedState(stateMachine));
                 return;
             }
 
-            if (!IsWalled())
+            // Si ya no tocamos la pared o dejamos de presionar la dirección de la pared
+            if (!stateMachine.IsWalled(stateMachine.transform.localScale.x))
             {
                 stateMachine.ChangeState(new AirborneState(stateMachine));
             }
@@ -60,18 +63,6 @@ namespace DeathCloud.Player.States
             // Deslizamiento lento en la pared
             float slidingVel = Mathf.Clamp(stateMachine.RB.linearVelocity.y, -stats.wallSlidingSpeed, float.MaxValue);
             stateMachine.RB.linearVelocity = new Vector2(stateMachine.RB.linearVelocity.x, slidingVel);
-        }
-
-        private bool IsGrounded()
-        {
-            return Physics2D.OverlapCircle(stateMachine.transform.position, stats.groundCheckRadius, stats.groundLayer);
-        }
-
-        private bool IsWalled()
-        {
-            // Detecta pared en la dirección en la que mira el jugador
-            Vector2 checkPos = stateMachine.transform.position + new Vector3(stateMachine.transform.localScale.x * 0.5f, 0, 0);
-            return Physics2D.OverlapCircle(checkPos, stats.wallCheckRadius, stats.groundLayer);
         }
     }
 }

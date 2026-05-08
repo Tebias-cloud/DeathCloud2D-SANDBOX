@@ -14,6 +14,9 @@ namespace DeathCloud.Core.Input
         public event UnityAction GrappleCanceledEvent = delegate { };
         public event UnityAction DashEvent = delegate { };
         public event UnityAction AttackEvent = delegate { };
+        
+        public bool IsJumpHeld { get; private set; }
+        public Vector2 MoveValue { get; private set; }
 
         private InputSystem_Actions _inputActions;
 
@@ -34,32 +37,42 @@ namespace DeathCloud.Core.Input
 
         public void OnMove(InputAction.CallbackContext context)
         {
-            MoveEvent.Invoke(context.ReadValue<Vector2>());
+            MoveValue = context.ReadValue<Vector2>();
+            MoveEvent.Invoke(MoveValue);
         }
 
         public void OnJump(InputAction.CallbackContext context)
         {
-            if (context.phase == InputActionPhase.Performed)
+            if (context.started)
+            {
+                IsJumpHeld = true;
                 JumpEvent.Invoke();
-            if (context.phase == InputActionPhase.Canceled)
+            }
+            else if (context.canceled)
+            {
+                IsJumpHeld = false;
                 JumpCanceledEvent.Invoke();
+            }
         }
 
         public void OnGrapple(InputAction.CallbackContext context)
         {
-            if (context.phase == InputActionPhase.Performed)
+            if (context.started)
                 GrappleEvent.Invoke();
-            if (context.phase == InputActionPhase.Canceled)
+            else if (context.canceled)
                 GrappleCanceledEvent.Invoke();
         }
 
-        // Implementación de otros métodos de la interfaz (vacíos por ahora si no se usan)
-        public void OnLook(InputAction.CallbackContext context) { }
         public void OnAttack(InputAction.CallbackContext context) 
         {
-            if (context.phase == InputActionPhase.Performed)
+            if (context.started)
                 AttackEvent.Invoke();
         }
+        public void OnLook(InputAction.CallbackContext context)
+        {
+            // No se usa en este proyecto 2D
+        }
+
         public void OnInteract(InputAction.CallbackContext context) { }
         public void OnCrouch(InputAction.CallbackContext context) { }
         public void OnPrevious(InputAction.CallbackContext context) { }
