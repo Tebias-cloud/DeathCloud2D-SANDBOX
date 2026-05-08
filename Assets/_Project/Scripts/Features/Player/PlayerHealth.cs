@@ -11,10 +11,12 @@ namespace DeathCloud.Features.Player
         [SerializeField] private int maxHealth = 100;
         [SerializeField] private AudioClip impactSound;
         private int currentHealth;
+        private SpriteRenderer _sprite;
 
         private void Start()
         {
             currentHealth = maxHealth;
+            _sprite = GetComponentInChildren<SpriteRenderer>();
         }
 
         public void TakeDamage(int amount)
@@ -26,6 +28,8 @@ namespace DeathCloud.Features.Player
             {
                 AudioManager.Instance.PlaySFX(impactSound);
             }
+
+            StartCoroutine(FlashRed());
 
             if (currentHealth <= 0)
             {
@@ -40,6 +44,15 @@ namespace DeathCloud.Features.Player
             {
                 GameManager.Instance.LoseGame();
             }
+        }
+
+        private System.Collections.IEnumerator FlashRed()
+        {
+            if (_sprite == null) yield break;
+            Color original = _sprite.color;
+            _sprite.color = Color.red;
+            yield return new WaitForSeconds(0.1f);
+            _sprite.color = original;
         }
     }
 }

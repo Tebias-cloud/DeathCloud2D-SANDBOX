@@ -96,9 +96,9 @@ namespace DeathCloud.Player.States
                 // Si es algo rompible, lo rompemos e ignoramos el resto del rayo
                 if (h.collider.CompareTag("Breakable"))
                 {
-                    if (stateMachine.glassBreakSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
+                    if (stateMachine.GlassBreakSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
                     {
-                        DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.glassBreakSound);
+                        DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.GlassBreakSound);
                     }
                     Object.Destroy(h.collider.gameObject);
                     return;
@@ -112,9 +112,9 @@ namespace DeathCloud.Player.States
                         enemy.ApplyStun(1.5f);
                     }
 
-                    if (stateMachine.hookHitEnemySound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
+                    if (stateMachine.HookHitEnemySound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
                     {
-                        DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.hookHitEnemySound);
+                        DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.HookHitEnemySound);
                     }
                     
                     // Si el enemigo es un trigger, seguimos buscando para el anclaje físico
@@ -138,9 +138,9 @@ namespace DeathCloud.Player.States
 
             if (hit.collider != null)
             {
-                if (stateMachine.hookLaunchSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
+                if (stateMachine.HookLaunchSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
                 {
-                    DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.hookLaunchSound);
+                    DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.HookLaunchSound);
                 }
 
                 // Actualizar línea inmediatamente para evitar el "parpadeo" o que parezca que atraviesa

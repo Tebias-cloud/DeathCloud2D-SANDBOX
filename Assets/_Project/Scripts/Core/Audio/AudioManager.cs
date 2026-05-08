@@ -4,7 +4,19 @@ namespace DeathCloud.Core.Audio
 {
     public class AudioManager : MonoBehaviour
     {
-        public static AudioManager Instance { get; private set; }
+        private static AudioManager _instance;
+        public static AudioManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("AudioManager (Auto-Generated)");
+                    _instance = go.AddComponent<AudioManager>();
+                }
+                return _instance;
+            }
+        }
 
         [Header("Audio Sources")]
         [SerializeField] private AudioSource _musicSource;
@@ -15,15 +27,31 @@ namespace DeathCloud.Core.Audio
 
         private void Awake()
         {
-            // Patrón Singleton para asegurar que solo exista un AudioManager
-            if (Instance == null)
+            if (_instance == null)
             {
-                Instance = this;
-                DontDestroyOnLoad(gameObject); 
+                _instance = this;
+                DontDestroyOnLoad(gameObject);
+                SetupSources();
             }
-            else
+            else if (_instance != this)
             {
-                Destroy(gameObject); 
+                Destroy(gameObject);
+            }
+        }
+
+        private void SetupSources()
+        {
+            // Si no las has asignado en el Inspector, las creamos nosotros
+            if (_musicSource == null)
+            {
+                _musicSource = gameObject.AddComponent<AudioSource>();
+                _musicSource.playOnAwake = false;
+            }
+
+            if (_sfxSource == null)
+            {
+                _sfxSource = gameObject.AddComponent<AudioSource>();
+                _sfxSource.playOnAwake = false;
             }
         }
 

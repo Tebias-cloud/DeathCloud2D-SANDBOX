@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DeathCloud.Core.Audio;
 
 namespace DeathCloud.UI
 {
@@ -10,16 +11,30 @@ namespace DeathCloud.UI
 
         [Header("Paneles (Asignar en Inspector)")]
         [SerializeField] private GameObject pausePanel;
+        [SerializeField] private GameObject victoryPanel;
+        [SerializeField] private GameObject gameOverPanel;
         
         [Header("Audio")]
         [SerializeField] private AudioClip gameMusic;
         [SerializeField] private AudioClip uiClickSound;
 
+        public static GameUIController Instance { get; private set; }
         private bool isPaused = false;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         private void Start()
         {
+            // Asegurar que el ratón sea visible para apuntar el gancho
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
             if (pausePanel != null) pausePanel.SetActive(false);
+            if (victoryPanel != null) victoryPanel.SetActive(false);
+            if (gameOverPanel != null) gameOverPanel.SetActive(false);
 
             if (gameMusic != null && Core.Audio.AudioManager.Instance != null)
             {
@@ -40,6 +55,38 @@ namespace DeathCloud.UI
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 TogglePause();
+            }
+        }
+
+        public void ShowVictory()
+        {
+            if (victoryPanel != null)
+            {
+                victoryPanel.SetActive(true);
+                Time.timeScale = 0f; 
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+                Debug.Log("[GameUI] Pantalla de Victoria mostrada.");
+            }
+            else
+            {
+                Debug.LogError("[GameUI] ¡ERROR! No has asignado el Victory Panel en el Inspector.");
+            }
+        }
+
+        public void ShowGameOver()
+        {
+            if (gameOverPanel != null)
+            {
+                gameOverPanel.SetActive(true);
+                Time.timeScale = 0f; 
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+                Debug.Log("[GameUI] Pantalla de Game Over mostrada.");
+            }
+            else
+            {
+                Debug.LogError("[GameUI] ¡ERROR! No has asignado el Game Over Panel en el Inspector.");
             }
         }
 
@@ -79,15 +126,17 @@ namespace DeathCloud.UI
             SceneManager.LoadScene(mainMenuSceneName);
         }
 
+        // Alias para compatibilidad con botones de la escena
+        public void ReturnToMenu() => GoToMainMenu();
+
         private void CleanupNetwork()
         {
-            if (Unity.Netcode.NetworkManager.Singleton != null)
+            if (Unity.Netcode.NetworkManager.Singleton != null && !Unity.Netcode.NetworkManager.Singleton.ShutdownInProgress)
             {
-                var nm = Unity.Netcode.NetworkManager.Singleton;
-                nm.Shutdown();
-                Destroy(nm.gameObject);
+                Unity.Netcode.NetworkManager.Singleton.Shutdown();
             }
 
+            // Destruir managers persistentes para evitar el error de "Singleton is not null"
             var persistents = FindObjectsByType<DeathCloud.Core.Network.NetworkManagerPersistent>(FindObjectsSortMode.None);
             foreach (var p in persistents)
             {

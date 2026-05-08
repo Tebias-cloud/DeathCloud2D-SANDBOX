@@ -13,15 +13,13 @@ public class FallZone : MonoBehaviour
         // Verifica si el objeto que colisiona tiene el tag "Player"
         if (other.CompareTag("Player"))
         {
-            if (respawnPoint != null)
+            if (DeathCloud.UI.GameUIController.Instance != null)
             {
-                // Al ser un NetworkObject con autoridad local, modificar el transform
-                // en el cliente dueño es suficiente para un respawn simple.
-                other.transform.position = respawnPoint.position;
+                DeathCloud.UI.GameUIController.Instance.ShowGameOver();
             }
-            else
+            else if (respawnPoint != null)
             {
-                Debug.LogWarning("FallZone: No se ha asignado un RespawnPoint en el inspector.");
+                other.transform.position = respawnPoint.position;
             }
         }
     }

@@ -48,7 +48,11 @@ namespace DeathCloud.Player.States
 
             stateMachine.Joint.distance = Vector2.Distance(stateMachine.transform.position, GetCurrentAnchorPoint());
             
-            stateMachine.Line.enabled = true;
+            if (stateMachine.Line != null)
+            {
+                stateMachine.Line.enabled = true;
+                stateMachine.Line.positionCount = 2;
+            }
             _tensionStress = 0f;
         }
 
@@ -92,9 +96,9 @@ namespace DeathCloud.Player.States
         private void OnAttack()
         {
             // Atacar sin soltar el gancho
-            if (stateMachine.basicAttackSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
+            if (stateMachine.BasicAttackSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
             {
-                DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.basicAttackSound);
+                DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.BasicAttackSound);
             }
 
             // Ejecutar hitbox de ataque (mismo rango que AttackState)
@@ -108,9 +112,9 @@ namespace DeathCloud.Player.States
 
                 if (obj.CompareTag("Breakable"))
                 {
-                    if (stateMachine.glassBreakSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
+                    if (stateMachine.GlassBreakSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
                     {
-                        DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.glassBreakSound);
+                        DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.GlassBreakSound);
                     }
                     Object.Destroy(obj.gameObject);
                 }
@@ -139,7 +143,8 @@ namespace DeathCloud.Player.States
         {
             if (_horizontalInput != 0)
             {
-                stateMachine.RB.AddForce(new Vector2(_horizontalInput * stats.swingForce, 0));
+                // Balanceo mucho más potente
+                stateMachine.RB.AddForce(new Vector2(_horizontalInput * stats.swingForce * 1.5f, 0));
             }
 
             if (stateMachine.RB.linearVelocity.magnitude > stats.maxSpeedLimit)
@@ -170,9 +175,9 @@ namespace DeathCloud.Player.States
         {
             if (_verticalInput != 0)
             {
-                float climbSpeed = 10f; 
+                float climbSpeed = 15f; // Más rápido para que sea útil
                 stateMachine.Joint.distance -= _verticalInput * climbSpeed * Time.deltaTime;
-                stateMachine.Joint.distance = Mathf.Clamp(stateMachine.Joint.distance, 1f, stats.maxHookDistance);
+                stateMachine.Joint.distance = Mathf.Clamp(stateMachine.Joint.distance, 1.5f, stats.maxHookDistance);
             }
         }
 

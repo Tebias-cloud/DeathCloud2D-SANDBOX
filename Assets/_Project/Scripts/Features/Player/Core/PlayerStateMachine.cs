@@ -41,10 +41,16 @@ namespace DeathCloud.Player.Core
         [SerializeField] private Transform _cameraTarget; // Agregado para centrar la cámara
         
         [Header("Audio")]
-        public AudioClip basicAttackSound;
-        public AudioClip hookLaunchSound;
-        public AudioClip hookHitEnemySound;
-        public AudioClip glassBreakSound;
+        [SerializeField] private AudioClip basicAttackSound;
+        [SerializeField] private AudioClip hookLaunchSound;
+        [SerializeField] private AudioClip hookHitEnemySound;
+        [SerializeField] private AudioClip glassBreakSound;
+
+        // Propiedades públicas para que los estados puedan leerlos
+        public AudioClip BasicAttackSound => basicAttackSound;
+        public AudioClip HookLaunchSound => hookLaunchSound;
+        public AudioClip HookHitEnemySound => hookHitEnemySound;
+        public AudioClip GlassBreakSound => glassBreakSound;
 
         public PlayerStatsSO Stats => _stats;
         public InputReader Input => _input;
@@ -97,6 +103,17 @@ namespace DeathCloud.Player.Core
 
         private void Start()
         {
+            // --- FIX PARA VISIBILIDAD EN BUILD ---
+            if (Line != null)
+            {
+                Line.useWorldSpace = true;
+                if (Line.material == null || Line.material.name.Contains("Default-Material"))
+                {
+                    // Intentamos asignar el shader estándar de sprites para asegurar visibilidad
+                    Line.material = new Material(Shader.Find("Sprites/Default"));
+                }
+            }
+
             if (!IsOwner) return;
             
             if (_stats == null || _input == null)

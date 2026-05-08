@@ -20,9 +20,9 @@ namespace DeathCloud.Player.States
             timePassed = 0f;
             
             // Sonido de ataque básico (SIEMPRE suena al hacer clic)
-            if (stateMachine.basicAttackSound != null && AudioManager.Instance != null)
+            if (stateMachine.BasicAttackSound != null && AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlaySFX(stateMachine.basicAttackSound);
+                AudioManager.Instance.PlaySFX(stateMachine.BasicAttackSound);
             }
 
             // Frenar al jugador horizontalmente al atacar
@@ -52,9 +52,9 @@ namespace DeathCloud.Player.States
                 {
                     Debug.Log($"[AttackState] ¡CRISTAL ROTO! {obj.name}");
                     
-                    if (stateMachine.glassBreakSound != null && AudioManager.Instance != null)
+                    if (stateMachine.GlassBreakSound != null && AudioManager.Instance != null)
                     {
-                        AudioManager.Instance.PlaySFX(stateMachine.glassBreakSound);
+                        AudioManager.Instance.PlaySFX(stateMachine.GlassBreakSound);
                     }
 
                     Object.Destroy(obj.gameObject);

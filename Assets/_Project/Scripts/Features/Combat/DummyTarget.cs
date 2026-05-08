@@ -43,6 +43,12 @@ namespace DeathCloud.Features.Combat
         private void Die()
         {
             Debug.Log("[DummyTarget] Objetivo destruido. ¡Victoria!");
+            
+            if (UI.GameUIController.Instance != null)
+            {
+                UI.GameUIController.Instance.ShowVictory();
+            }
+
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.WinGame();
