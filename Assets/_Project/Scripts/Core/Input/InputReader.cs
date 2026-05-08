@@ -13,6 +13,7 @@ namespace DeathCloud.Core.Input
         public event UnityAction GrappleEvent = delegate { };
         public event UnityAction GrappleCanceledEvent = delegate { };
         public event UnityAction DashEvent = delegate { };
+        public event UnityAction AttackEvent = delegate { };
 
         private InputSystem_Actions _inputActions;
 
@@ -54,11 +55,16 @@ namespace DeathCloud.Core.Input
 
         // Implementación de otros métodos de la interfaz (vacíos por ahora si no se usan)
         public void OnLook(InputAction.CallbackContext context) { }
-        public void OnAttack(InputAction.CallbackContext context) { }
+        public void OnAttack(InputAction.CallbackContext context) 
+        {
+            if (context.phase == InputActionPhase.Performed)
+                AttackEvent.Invoke();
+        }
         public void OnInteract(InputAction.CallbackContext context) { }
         public void OnCrouch(InputAction.CallbackContext context) { }
         public void OnPrevious(InputAction.CallbackContext context) { }
         public void OnNext(InputAction.CallbackContext context) { }
+        public void OnNewaction(InputAction.CallbackContext context) { }
         public void OnSprint(InputAction.CallbackContext context) 
         {
             if (context.phase == InputActionPhase.Performed)

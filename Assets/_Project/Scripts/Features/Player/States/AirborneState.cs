@@ -108,8 +108,16 @@ namespace DeathCloud.Player.States
 
         private void HandleFlip()
         {
-            if (_horizontalInput > 0) stateMachine.transform.localScale = new Vector3(1, 1, 1);
-            else if (_horizontalInput < 0) stateMachine.transform.localScale = new Vector3(-1, 1, 1);
+            Vector3 currentScale = stateMachine.transform.localScale;
+            if (_horizontalInput > 0)
+            {
+                currentScale.x = Mathf.Abs(currentScale.x);
+            }
+            else if (_horizontalInput < 0)
+            {
+                currentScale.x = -Mathf.Abs(currentScale.x);
+            }
+            stateMachine.transform.localScale = currentScale;
         }
     }
 }

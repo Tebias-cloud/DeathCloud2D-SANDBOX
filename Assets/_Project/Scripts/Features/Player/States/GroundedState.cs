@@ -16,6 +16,7 @@ namespace DeathCloud.Player.States
             input.MoveEvent += OnMove;
             input.GrappleEvent += OnTryGrapple;
             input.DashEvent += OnDash;
+            input.AttackEvent += OnAttackPressed;
 
             // Jump Buffer logic: si ya veníamos con ganas de saltar, saltamos ahora
             if (stateMachine.HasJumpBuffer)
@@ -31,6 +32,7 @@ namespace DeathCloud.Player.States
             input.MoveEvent -= OnMove;
             input.GrappleEvent -= OnTryGrapple;
             input.DashEvent -= OnDash;
+            input.AttackEvent -= OnAttackPressed;
         }
 
         private void OnMove(Vector2 move)
@@ -41,6 +43,11 @@ namespace DeathCloud.Player.States
         private void OnDash()
         {
             stateMachine.ChangeState(new DashState(stateMachine));
+        }
+
+        private void OnAttackPressed()
+        {
+            stateMachine.ChangeState(new AttackState(stateMachine));
         }
 
         private void OnTryGrapple()
@@ -86,8 +93,16 @@ namespace DeathCloud.Player.States
 
         private void HandleFlip()
         {
-            if (_horizontalInput > 0) stateMachine.transform.localScale = new Vector3(1, 1, 1);
-            else if (_horizontalInput < 0) stateMachine.transform.localScale = new Vector3(-1, 1, 1);
+            Vector3 currentScale = stateMachine.transform.localScale;
+            if (_horizontalInput > 0)
+            {
+                currentScale.x = Mathf.Abs(currentScale.x);
+            }
+            else if (_horizontalInput < 0)
+            {
+                currentScale.x = -Mathf.Abs(currentScale.x);
+            }
+            stateMachine.transform.localScale = currentScale;
         }
     }
 }
