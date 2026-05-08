@@ -58,12 +58,15 @@ namespace DeathCloud.Core.Network
                 return;
             }
 
-            // Intentar 5 puertos diferentes (7777, 7778, 7779, 7780, 7781)
-            for (int i = 1; i <= 5; i++)
+            // Intentar un rango más amplio y con un poco de aleatoriedad para evitar bloqueos
+            for (int i = 1; i <= 10; i++)
             {
-                ushort newPort = (ushort)(7777 + i);
+                ushort newPort = (ushort)(7777 + Random.Range(1, 100)); // Rango más amplio
                 transport.ConnectionData.Port = newPort;
-                Debug.Log($"[AutoHost] Reintentando en puerto: {newPort} (Intento {i}/5)...");
+                Debug.Log($"[AutoHost] Reintentando en puerto aleatorio: {newPort} (Intento {i}/10)...");
+
+                // Importante: Intentar apagar por si acaso quedó algo a medio abrir
+                NetworkManager.Singleton.Shutdown();
 
                 if (NetworkManager.Singleton.StartHost())
                 {
@@ -72,7 +75,7 @@ namespace DeathCloud.Core.Network
                 }
             }
 
-            Debug.LogError("[AutoHost] Fallo crítico: Agotados todos los intentos de bypass de puerto.");
+            Debug.LogError("[AutoHost] Fallo crítico: Agotados todos los intentos de bypass de puerto. Por favor, cierra otras instancias de Unity o el juego.");
         }
     }
 }

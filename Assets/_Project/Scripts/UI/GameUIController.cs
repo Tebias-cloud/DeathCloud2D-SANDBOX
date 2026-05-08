@@ -10,12 +10,29 @@ namespace DeathCloud.UI
 
         [Header("Paneles (Asignar en Inspector)")]
         [SerializeField] private GameObject pausePanel;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioClip gameMusic;
+        [SerializeField] private AudioClip uiClickSound;
 
         private bool isPaused = false;
 
         private void Start()
         {
             if (pausePanel != null) pausePanel.SetActive(false);
+
+            if (gameMusic != null && Core.Audio.AudioManager.Instance != null)
+            {
+                Core.Audio.AudioManager.Instance.PlayMusic(gameMusic);
+            }
+        }
+
+        public void PlayClickSound()
+        {
+            if (uiClickSound != null && Core.Audio.AudioManager.Instance != null)
+            {
+                Core.Audio.AudioManager.Instance.PlaySFX(uiClickSound);
+            }
         }
 
         private void Update()

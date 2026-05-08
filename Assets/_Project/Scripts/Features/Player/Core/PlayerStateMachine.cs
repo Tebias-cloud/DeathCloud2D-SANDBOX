@@ -39,6 +39,12 @@ namespace DeathCloud.Player.Core
         [SerializeField] private PlayerStatsSO _stats;
         [SerializeField] private InputReader _input;
         [SerializeField] private Transform _cameraTarget; // Agregado para centrar la cámara
+        
+        [Header("Audio")]
+        public AudioClip basicAttackSound;
+        public AudioClip hookLaunchSound;
+        public AudioClip hookHitEnemySound;
+        public AudioClip glassBreakSound;
 
         public PlayerStatsSO Stats => _stats;
         public InputReader Input => _input;
@@ -150,6 +156,17 @@ namespace DeathCloud.Player.Core
             Vector2 boxCenter = new Vector2(Collider.bounds.center.x + (Collider.bounds.extents.x * directionX), Collider.bounds.center.y);
             
             return Physics2D.OverlapBox(boxCenter, boxSize, 0f, Stats.groundLayer);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (_stats == null) return;
+            
+            // Dibujar el rango del ataque (Círculo Verde)
+            Gizmos.color = Color.green;
+            float lookDir = transform.localScale.x;
+            Vector2 attackPoint = (Vector2)transform.position + new Vector2(lookDir * _stats.attackRange * 0.5f, 0);
+            Gizmos.DrawWireSphere(attackPoint, _stats.attackRange * 0.8f);
         }
     }
 }

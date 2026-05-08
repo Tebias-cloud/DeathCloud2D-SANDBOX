@@ -12,6 +12,10 @@ namespace DeathCloud.UI
         [Header("Paneles (Asignar en Inspector)")]
         [SerializeField] private GameObject mainButtonsPanel;
         [SerializeField] private GameObject settingsPanel;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioClip menuMusic;
+        [SerializeField] private AudioClip uiClickSound;
 
         private void Start()
         {
@@ -19,6 +23,19 @@ namespace DeathCloud.UI
             Cursor.lockState = CursorLockMode.None;
             // Estado inicial limpio
             ToggleSettings(false);
+
+            if (menuMusic != null && Core.Audio.AudioManager.Instance != null)
+            {
+                Core.Audio.AudioManager.Instance.PlayMusic(menuMusic);
+            }
+        }
+
+        public void PlayClickSound()
+        {
+            if (uiClickSound != null && Core.Audio.AudioManager.Instance != null)
+            {
+                Core.Audio.AudioManager.Instance.PlaySFX(uiClickSound);
+            }
         }
 
         public void StartGame() => SceneManager.LoadScene(gameSceneName);

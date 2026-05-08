@@ -4,6 +4,8 @@ namespace DeathCloud.Player.States
 {
     using Core;
     using DeathCloud.Core.Combat;
+    using DeathCloud.Core.Audio;
+    using DeathCloud.Features.Combat;
 
     public class AttackState : PlayerState 
     {
@@ -14,9 +16,15 @@ namespace DeathCloud.Player.States
 
         public override void Enter()
         {
-            Debug.Log("[AttackState] Atacando...");
+            Debug.Log("[AttackState] Atacando con Látigo...");
             timePassed = 0f;
             
+            // Sonido de ataque básico (SIEMPRE suena al hacer clic)
+            if (stateMachine.basicAttackSound != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(stateMachine.basicAttackSound);
+            }
+
             // Frenar al jugador horizontalmente al atacar
             stateMachine.RB.linearVelocity = new Vector2(0, stateMachine.RB.linearVelocity.y);
 
@@ -29,14 +37,47 @@ namespace DeathCloud.Player.States
             float lookDir = stateMachine.transform.localScale.x;
             Vector2 attackPoint = (Vector2)stateMachine.transform.position + new Vector2(lookDir * stats.attackRange * 0.5f, 0);
             
-            Collider2D[] hitObjects = Physics2D.OverlapCircleAll(attackPoint, stats.attackRange * 0.5f, stats.damageableLayer);
+            // Detectar en todas las capas para depurar
+            Collider2D[] hitObjects = Physics2D.OverlapCircleAll(attackPoint, stats.attackRange * 0.8f);
 
             foreach (var obj in hitObjects)
             {
+                // SEGURIDAD: No golpearse a uno mismo
+                if (obj.transform.IsChildOf(stateMachine.transform)) continue;
+
+                Debug.Log($"[AttackState] Impacto detectado con: {obj.name} (Tag: {obj.tag})");
+
+                // LÓGICA DE LÁTIGO DE UTILIDAD (Hook/Break)
+                if (obj.CompareTag("Breakable"))
+                {
+                    Debug.Log($"[AttackState] ¡CRISTAL ROTO! {obj.name}");
+                    
+                    if (stateMachine.glassBreakSound != null && AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlaySFX(stateMachine.glassBreakSound);
+                    }
+
+                    Object.Destroy(obj.gameObject);
+                    continue; 
+                }
+
+                if (obj.CompareTag("Enemy"))
+                {
+                    Debug.Log($"[AttackState] Enemigo aturdido: {obj.name}");
+                    
+                    // Lógica de Látigo: Aturde pero NO suena el hookHitEnemySound (que es del gancho)
+                    
+                    // Aplicar Aturdimiento
+                    if (obj.TryGetComponent(out DummyTarget enemy))
+                    {
+                        enemy.ApplyStun(1.5f);
+                    }
+                }
+
                 if (obj.TryGetComponent(out IDamageable damageable))
                 {
                     damageable.TakeDamage(stats.attackDamage);
-                    Debug.Log($"[AttackState] Golpeado: {obj.name}");
+                    Debug.Log($"[AttackState] Daño aplicado a: {obj.name}");
                 }
             }
         }

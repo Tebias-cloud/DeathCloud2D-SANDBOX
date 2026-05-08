@@ -33,6 +33,24 @@ namespace DeathCloud.Core.Audio
             UpdateVolumes();
         }
 
+        public void PlayMusic(AudioClip clip, bool loop = true)
+        {
+            if (_musicSource == null || clip == null) return;
+            
+            if (_musicSource.clip == clip && _musicSource.isPlaying) return;
+
+            _musicSource.clip = clip;
+            _musicSource.loop = loop;
+            _musicSource.volume = _masterVolume; // Se ajustará en UpdateVolumes
+            _musicSource.Play();
+            UpdateVolumes();
+        }
+
+        public void StopMusic()
+        {
+            if (_musicSource != null) _musicSource.Stop();
+        }
+
         public void SetMusicVolume(float volume)
         {
             if (_musicSource != null)

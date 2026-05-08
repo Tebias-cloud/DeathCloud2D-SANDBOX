@@ -7,13 +7,22 @@ namespace DeathCloud.Player.States
     public class HookedState : PlayerState
     {
         private Vector2 _anchorPoint;
+        private Vector2 _anchorOffset;
+        private Transform _targetTransform;
+        private Rigidbody2D _targetRB;
         private float _tensionStress;
         private float _horizontalInput;
         private float _verticalInput;
 
-        public HookedState(PlayerStateMachine stateMachine, Vector2 anchorPoint) : base(stateMachine)
+        public HookedState(PlayerStateMachine stateMachine, Vector2 anchorPoint, Transform targetTransform = null) : base(stateMachine)
         {
             _anchorPoint = anchorPoint;
+            _targetTransform = targetTransform;
+            if (_targetTransform != null)
+            {
+                _targetRB = _targetTransform.GetComponent<Rigidbody2D>();
+                _anchorOffset = _targetTransform.InverseTransformPoint(anchorPoint);
+            }
         }
 
         public override void Enter()
@@ -22,10 +31,22 @@ namespace DeathCloud.Player.States
             input.JumpEvent += OnJump;
             input.GrappleCanceledEvent += OnGrappleReleased;
             input.DashEvent += OnDash;
+            input.AttackEvent += OnAttack;
 
             stateMachine.Joint.enabled = true;
-            stateMachine.Joint.connectedAnchor = _anchorPoint;
-            stateMachine.Joint.distance = Vector2.Distance(stateMachine.transform.position, _anchorPoint);
+            
+            if (_targetRB != null)
+            {
+                stateMachine.Joint.connectedBody = _targetRB;
+                stateMachine.Joint.connectedAnchor = _anchorOffset;
+            }
+            else
+            {
+                stateMachine.Joint.connectedBody = null;
+                stateMachine.Joint.connectedAnchor = _anchorPoint;
+            }
+
+            stateMachine.Joint.distance = Vector2.Distance(stateMachine.transform.position, GetCurrentAnchorPoint());
             
             stateMachine.Line.enabled = true;
             _tensionStress = 0f;
@@ -37,8 +58,10 @@ namespace DeathCloud.Player.States
             input.JumpEvent -= OnJump;
             input.GrappleCanceledEvent -= OnGrappleReleased;
             input.DashEvent -= OnDash;
+            input.AttackEvent -= OnAttack;
 
             stateMachine.Joint.enabled = false;
+            stateMachine.Joint.connectedBody = null; // Limpiar conexión
             stateMachine.Line.enabled = false;
         }
 
@@ -61,12 +84,49 @@ namespace DeathCloud.Player.States
 
         private void OnGrappleReleased()
         {
-            // Tirachinas: Al soltar el botón, conservamos la velocidad actual
-            // pero le damos un pequeño empujón extra si estamos moviéndonos rápido
             Vector2 boost = stateMachine.RB.linearVelocity * 1.1f; 
             stateMachine.RB.linearVelocity = boost;
-            
             stateMachine.ChangeState(new AirborneState(stateMachine));
+        }
+
+        private void OnAttack()
+        {
+            // Atacar sin soltar el gancho
+            if (stateMachine.basicAttackSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
+            {
+                DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.basicAttackSound);
+            }
+
+            // Ejecutar hitbox de ataque (mismo rango que AttackState)
+            float lookDir = stateMachine.transform.localScale.x;
+            Vector2 attackPoint = (Vector2)stateMachine.transform.position + new Vector2(lookDir * stats.attackRange * 0.5f, 0);
+            Collider2D[] hitObjects = Physics2D.OverlapCircleAll(attackPoint, stats.attackRange * 0.8f);
+
+            foreach (var obj in hitObjects)
+            {
+                if (obj.transform.IsChildOf(stateMachine.transform)) continue;
+
+                if (obj.CompareTag("Breakable"))
+                {
+                    if (stateMachine.glassBreakSound != null && DeathCloud.Core.Audio.AudioManager.Instance != null)
+                    {
+                        DeathCloud.Core.Audio.AudioManager.Instance.PlaySFX(stateMachine.glassBreakSound);
+                    }
+                    Object.Destroy(obj.gameObject);
+                }
+                else if (obj.CompareTag("Enemy"))
+                {
+                    if (obj.TryGetComponent(out DeathCloud.Core.Combat.IDamageable damageable))
+                    {
+                        damageable.TakeDamage(stats.attackDamage);
+                    }
+                    
+                    if (obj.TryGetComponent(out Features.Combat.DummyTarget enemy))
+                    {
+                        enemy.ApplyStun(1.5f);
+                    }
+                }
+            }
         }
 
         public override void Update()
@@ -82,7 +142,6 @@ namespace DeathCloud.Player.States
                 stateMachine.RB.AddForce(new Vector2(_horizontalInput * stats.swingForce, 0));
             }
 
-            // Cap de velocidad
             if (stateMachine.RB.linearVelocity.magnitude > stats.maxSpeedLimit)
             {
                 stateMachine.RB.linearVelocity = stateMachine.RB.linearVelocity.normalized * stats.maxSpeedLimit;
@@ -91,11 +150,11 @@ namespace DeathCloud.Player.States
 
         private void UpdateLineAndTension()
         {
+            Vector3 currentAnchor = GetCurrentAnchorPoint();
             stateMachine.Line.SetPosition(0, stateMachine.transform.position);
-            stateMachine.Line.SetPosition(1, _anchorPoint);
+            stateMachine.Line.SetPosition(1, currentAnchor);
 
-            // Lógica de tensión (Copiada del original)
-            float currentDist = Vector2.Distance(stateMachine.transform.position, _anchorPoint);
+            float currentDist = Vector2.Distance(stateMachine.transform.position, currentAnchor);
             float tensionPercent = Mathf.Clamp01(currentDist / stats.maxHookDistance);
             float currentTimeToBreak = Mathf.Lerp(stats.snappingTimeSlack, stats.snappingTimeTense, tensionPercent);
             
@@ -111,7 +170,7 @@ namespace DeathCloud.Player.States
         {
             if (_verticalInput != 0)
             {
-                float climbSpeed = 10f; // Valor por defecto ajustable
+                float climbSpeed = 10f; 
                 stateMachine.Joint.distance -= _verticalInput * climbSpeed * Time.deltaTime;
                 stateMachine.Joint.distance = Mathf.Clamp(stateMachine.Joint.distance, 1f, stats.maxHookDistance);
             }
@@ -125,16 +184,25 @@ namespace DeathCloud.Player.States
             Vector2 finalVel;
             if (isPerfect)
             {
-                finalVel = new Vector2(vel.x * stats.perfectTimingMultiplier, stats.verticalPopForce * stats.perfectTimingMultiplier);
+                float verticalBoost = stats.verticalPopForce * (stats.perfectTimingMultiplier * 0.8f);
+                finalVel = new Vector2(vel.x * stats.perfectTimingMultiplier, verticalBoost);
             }
             else
             {
                 finalVel = new Vector2(vel.x, Mathf.Max(0, vel.y) + stats.normalJumpPop);
             }
-
-            // Clamp final velocity to avoid "explosive" launches
-            float maxLaunchSpeed = stats.maxSpeedLimit * 2f; 
+ 
+            float maxLaunchSpeed = stats.maxSpeedLimit * 1.5f; 
             stateMachine.RB.linearVelocity = Vector2.ClampMagnitude(finalVel, maxLaunchSpeed);
+        }
+
+        private Vector3 GetCurrentAnchorPoint()
+        {
+            if (_targetTransform != null)
+            {
+                return _targetTransform.TransformPoint(_anchorOffset);
+            }
+            return _anchorPoint;
         }
     }
 }

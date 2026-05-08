@@ -627,7 +627,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1761663437
+  GlobalObjectIdHash: 1634929812
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -656,6 +656,10 @@ MonoBehaviour:
   _stats: {fileID: 11400000, guid: d5c70c864de7c6043bb09d7705577db8, type: 2}
   _input: {fileID: 11400000, guid: 8ab78d2c3b419c240b7c1bb995858774, type: 2}
   _cameraTarget: {fileID: 8781065246531482048}
+  basicAttackSound: {fileID: 8300000, guid: b7718f746b162234eb7e92073f822444, type: 3}
+  hookLaunchSound: {fileID: 8300000, guid: b086437f99b03914fac7969504328cd0, type: 3}
+  hookHitEnemySound: {fileID: 8300000, guid: 5b0e77bf9171ae8439a35f21a0429c62, type: 3}
+  glassBreakSound: {fileID: 8300000, guid: 305683efc669dc343ae05f60a6fd6204, type: 3}
 --- !u!114 &3883644465280990828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -669,6 +673,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeathCloud.Features.Player.PlayerHealth
   maxHealth: 100
+  impactSound: {fileID: 0}
 --- !u!1 &1795855129273169344
 GameObject:
   m_ObjectHideFlags: 0
