@@ -10,50 +10,52 @@ namespace DeathCloud.Core.Audio
         [SerializeField] private AudioSource _musicSource;
         [SerializeField] private AudioSource _sfxSource;
 
+        [Header("Settings")]
+        [Range(0f, 1f)] [SerializeField] private float _masterVolume = 1f;
+
         private void Awake()
         {
             // Patrón Singleton para asegurar que solo exista un AudioManager
             if (Instance == null)
             {
                 Instance = this;
-                // Hace que este objeto persista al cambiar entre la "Escena Menú" y la "Escena Juego"
                 DontDestroyOnLoad(gameObject); 
             }
             else
             {
-                // Si ya existe un AudioManager, destruimos el nuevo para evitar duplicados
                 Destroy(gameObject); 
             }
         }
 
-        /// <summary>
-        /// Modifica el volumen de la música.
-        /// </summary>
-        /// <param name="volume">Volumen deseado (0.0 a 1.0).</param>
+        public void SetMasterVolume(float volume)
+        {
+            _masterVolume = Mathf.Clamp01(volume);
+            UpdateVolumes();
+        }
+
         public void SetMusicVolume(float volume)
         {
             if (_musicSource != null)
             {
-                _musicSource.volume = Mathf.Clamp01(volume);
+                _musicSource.volume = Mathf.Clamp01(volume) * _masterVolume;
             }
         }
 
-        /// <summary>
-        /// Modifica el volumen de los efectos de sonido (SFX).
-        /// </summary>
-        /// <param name="volume">Volumen deseado (0.0 a 1.0).</param>
         public void SetSFXVolume(float volume)
         {
             if (_sfxSource != null)
             {
-                _sfxSource.volume = Mathf.Clamp01(volume);
+                _sfxSource.volume = Mathf.Clamp01(volume) * _masterVolume;
             }
         }
 
-        /// <summary>
-        /// Silencia o reactiva todos los audios del juego.
-        /// </summary>
-        /// <param name="mute">True para silenciar, False para activar el sonido.</param>
+        private void UpdateVolumes()
+        {
+            // Forzar actualización de volúmenes si fuera necesario
+            if (_musicSource != null) _musicSource.volume *= _masterVolume;
+            if (_sfxSource != null) _sfxSource.volume *= _masterVolume;
+        }
+
         public void MuteAll(bool mute)
         {
             if (_musicSource != null) _musicSource.mute = mute;

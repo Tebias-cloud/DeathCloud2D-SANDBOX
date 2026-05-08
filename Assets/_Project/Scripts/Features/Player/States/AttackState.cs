@@ -3,6 +3,7 @@ using UnityEngine;
 namespace DeathCloud.Player.States
 {
     using Core;
+    using DeathCloud.Core.Combat;
 
     public class AttackState : PlayerState 
     {
@@ -16,8 +17,28 @@ namespace DeathCloud.Player.States
             Debug.Log("[AttackState] Atacando...");
             timePassed = 0f;
             
-            // Frenar al jugador horizontalmente al atacar (mantiene la velocidad Y por si cae)
-            stateMachine.RB.linearVelocity = new Vector2(0, stateMachine.RB.linearVelocity.y); 
+            // Frenar al jugador horizontalmente al atacar
+            stateMachine.RB.linearVelocity = new Vector2(0, stateMachine.RB.linearVelocity.y);
+
+            ExecuteHitbox();
+        }
+
+        private void ExecuteHitbox()
+        {
+            // Posición frente al jugador según su escala local (dirección)
+            float lookDir = stateMachine.transform.localScale.x;
+            Vector2 attackPoint = (Vector2)stateMachine.transform.position + new Vector2(lookDir * stats.attackRange * 0.5f, 0);
+            
+            Collider2D[] hitObjects = Physics2D.OverlapCircleAll(attackPoint, stats.attackRange * 0.5f, stats.damageableLayer);
+
+            foreach (var obj in hitObjects)
+            {
+                if (obj.TryGetComponent(out IDamageable damageable))
+                {
+                    damageable.TakeDamage(stats.attackDamage);
+                    Debug.Log($"[AttackState] Golpeado: {obj.name}");
+                }
+            }
         }
 
         public override void Update()

@@ -24,5 +24,13 @@ namespace DeathCloud.Core.Network
             DontDestroyOnLoad(gameObject);
             Debug.Log("[NetworkManagerPersistent] Instancia única inicializada y persistente.");
         }
+
+        private void OnDestroy()
+        {
+            if (_instance == this)
+            {
+                _instance = null;
+            }
+        }
     }
 }

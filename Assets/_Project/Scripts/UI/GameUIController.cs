@@ -41,20 +41,41 @@ namespace DeathCloud.UI
             Cursor.lockState = isPaused ? CursorLockMode.None : CursorLockMode.Confined;
         }
 
-        // Función para el botón "Salir al Menú" dentro de la pausa
-        public void ReturnToMainMenu()
+        public void RestartLevel()
         {
-            Time.timeScale = 1f; // CRÍTICO: Despausar antes de cambiar de escena
+            Time.timeScale = 1f;
+            
+            // Limpieza de red antes de reiniciar para evitar conflictos de puerto
+            CleanupNetwork();
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        public void GoToMainMenu()
+        {
+            Time.timeScale = 1f;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
-
-            // CRÍTICO PARA NGO: Apagar la sesión actual para poder re-entrar después
-            if (Unity.Netcode.NetworkManager.Singleton != null)
-            {
-                Unity.Netcode.NetworkManager.Singleton.Shutdown();
-            }
+ 
+            CleanupNetwork();
 
             SceneManager.LoadScene(mainMenuSceneName);
+        }
+
+        private void CleanupNetwork()
+        {
+            if (Unity.Netcode.NetworkManager.Singleton != null)
+            {
+                var nm = Unity.Netcode.NetworkManager.Singleton;
+                nm.Shutdown();
+                Destroy(nm.gameObject);
+            }
+
+            var persistents = FindObjectsByType<DeathCloud.Core.Network.NetworkManagerPersistent>(FindObjectsSortMode.None);
+            foreach (var p in persistents)
+            {
+                Destroy(p.gameObject);
+            }
         }
     }
 }

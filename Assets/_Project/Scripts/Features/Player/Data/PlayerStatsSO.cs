@@ -42,5 +42,10 @@ namespace DeathCloud.Player
         public float dashSpeed = 25f;
         public float dashDuration = 0.2f;
         public float dashCooldown = 0.8f;
+
+        [Header("Combat")]
+        public float attackRange = 1.5f;
+        public int attackDamage = 10;
+        public LayerMask damageableLayer;
     }
 }

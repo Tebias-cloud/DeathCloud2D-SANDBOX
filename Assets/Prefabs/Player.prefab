@@ -53,6 +53,7 @@ GameObject:
   - component: {fileID: 5095944884699980330}
   - component: {fileID: -189419740991812753}
   - component: {fileID: 4159208803605947259}
+  - component: {fileID: 3883644465280990828}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -228,21 +229,21 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 192
   cursorVisual: {fileID: 0}
-  crosshairColorNormal: {r: 0.9245283, g: 0.9245283, b: 0.9245283, a: 1}
+  crosshairColorNormal: {r: 1, g: 1, b: 1, a: 1}
   crosshairColorValid: {r: 0, g: 1, b: 1, a: 1}
   firePoint: {fileID: 4372386660414801326}
-  normalColor: {r: 0.3056603, g: 0.3056603, b: 0.3056603, a: 1}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
   tensionColor: {r: 1, g: 0, b: 0, a: 1}
   snappingTimeSlack: 12
   snappingTimeTense: 5
-  swingForce: 45
+  swingForce: 35
   maxSpeedLimit: 35
   staticClimbSpeed: 12
   swingingClimbSpeed: 1.5
   normalJumpPop: 14
   normalJumpHorizontalControl: 12
-  horizontalPreservationMultiplier: 1.3
-  verticalPopForce: 14
+  horizontalPreservationMultiplier: 1.5
+  verticalPopForce: 10
   perfectTimingMultiplier: 1.6
   hookThrowSpeed: 45
   hookReturnSpeed: 70
@@ -626,7 +627,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1634929812
+  GlobalObjectIdHash: 1761663437
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -655,6 +656,19 @@ MonoBehaviour:
   _stats: {fileID: 11400000, guid: d5c70c864de7c6043bb09d7705577db8, type: 2}
   _input: {fileID: 11400000, guid: 8ab78d2c3b419c240b7c1bb995858774, type: 2}
   _cameraTarget: {fileID: 8781065246531482048}
+--- !u!114 &3883644465280990828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 471050271390787747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 718e734a8e6fd964dbad5ce006f133b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeathCloud.Features.Player.PlayerHealth
+  maxHealth: 100
 --- !u!1 &1795855129273169344
 GameObject:
   m_ObjectHideFlags: 0
